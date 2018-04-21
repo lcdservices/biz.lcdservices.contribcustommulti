@@ -30,8 +30,8 @@
   {/if}
   <table class="form-layout-compressed">
     {foreach from=$cd_edit.fields item=element key=field_id}
-        {foreach from=$element.field_values item=field_element key=field_element_id}
-          <tr class="custom_field-row {$element.element_name}-row">
+        {foreach from=$element item=field_element key=field_element_id}
+          <tr class="custom_field-row {$field_element.element_name}-row">
           {include file="CRM/LCD/Custom/Form/CustomField.tpl"}
            </tr>
         {/foreach}

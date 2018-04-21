@@ -1,6 +1,7 @@
 <?php
 
 require_once 'contribcustommulti.civix.php';
+require_once 'CRM/LCD/contribcustommulti/Form/CustomData.php';
 
 /**
  * Implements hook_civicrm_config().
@@ -188,76 +189,21 @@ function contribcustommulti_civicrm_buildForm($formName, &$form) {
  */
 function contribcustommulti_civicrm_preProcess($formName, &$form) {
   if ( is_a( $form, 'CRM_Contribute_Form_Contribution' ) ) {
-    $data = CRM_Custom_Form_CustomData::preProcess($form, NULL, $form->_contributionType, NULL,
+    $data = CRM_Contrib_Form_CustomData::preProcess($form, NULL, $form->_contributionType, NULL,
       ($form->_type) ? $form->_type : 'Contribution'
     );    
-    $getParams = array(
-      'entityID' => $form->_id,
-      'entityType' => 'Contribution',
-    );
-    $result = CRM_Core_BAO_CustomValueTable::getValues($getParams);
-    // Convert multi-value strings to arrays
-    $sp = CRM_Core_DAO::VALUE_SEPARATOR;
-    $values = array();
-    foreach ($result as $id => $value) {
-      $field_name = $id;
-      if (strpos($value, $sp) !== FALSE) {
-        $value = explode($sp, trim($value, $sp));
-      }
-
-      $idArray = explode('_', $id);
-      if ($idArray[0] != 'custom') {
-        continue;
-      }
-      $fieldNumber = $idArray[1];
-      $customFieldInfo = CRM_Core_BAO_CustomField::getNameFromID($fieldNumber);
-      $info = array_pop($customFieldInfo);
-
-      if (empty($idArray[2])) {
-        $n = 0;
-        $id = $fieldNumber;
-      }
-      else {
-        $n = $idArray[2];
-        $id = $fieldNumber . "." . $idArray[2];
-      }
-      if (!empty($getParams['format.field_names'])) {
-        $id = $info['field_name'];
-      }
-      else {
-        $id = $fieldNumber;
-      }
-      //set 'latest' -useful for multi fields but set for single for consistency
-      $values[$id][$n]['entity_id'] = $getParams['entityID'];
-      $values[$id][$n]['element_name'] = $field_name;
-      $values[$id][$n]['element_value'] = $value;
-      $values[$id][$n][$n] = $value;
-    }
-    foreach($form->_groupTree as $key => $cached_tree){
-      foreach($cached_tree['fields'] as $field_key => $cached_tree_fields){
-        $table_count = count($values[$field_key]);
-        $form->_groupTree[$key]['table_id'] = $table_count;
-        $first = current($values[$field_key]);
-        $form->_groupTree[$key]['fields'][$field_key]['field_values'] = $values[$field_key];
-        $form->_groupTree[$key]['fields'][$field_key]['element_name'] = $first['element_name'];
-        $form->_groupTree[$key]['fields'][$field_key]['element_value'] = $first['element_value'];
-      }
-    }
-    $form->assign('_groupTree', $form->_groupTree);
     
+    $form->assign('_groupTree', $form->_groupTree);
     foreach($form->_groupTree as $key => $cached_tree){
       foreach($cached_tree['fields'] as $field_key => $cached_tree_fields){
         $fieldId = $cached_tree_fields['id'];
-        
         $required = CRM_Utils_Array::value('is_required', $cached_tree_fields);
-        //fix for CRM-1620
         if ($cached_tree_fields['data_type'] == 'File') {
           if (!empty($cached_tree_fields['element_value']['data'])) {
             $required = 0;
           }
         }
-        foreach($cached_tree_fields['field_values'] as $element_key=>$field_value){
-          $cached_tree_fields['field_values'][$element_key]['label'] = $cached_tree_fields['label'];
+        foreach($cached_tree_fields as $element_key=>$field_value){
           $elementName = $field_value['element_name'];
           CRM_Core_BAO_CustomField::addQuickFormElement($form, $elementName, $fieldId, $required);
           $defaults[$elementName] = $field_value['element_value'];
