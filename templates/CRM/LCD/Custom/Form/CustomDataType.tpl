@@ -67,3 +67,77 @@
   })(CRM.$);
 </script>
 {/literal}
+
+{literal}
+<script type="text/javascript">
+  (function($) {
+    CRM.addmoreCustomData = function (type, subType, subName, cgCount, groupID, isMultiple, onlySubtype) {
+      var dataUrl = CRM.url('civicrm/contrib/contribcustommulti', {type: type}),
+        prevCount = 1,
+        fname = '#contrib_custom_set',
+        storage = {};
+
+      if (subType) {
+        dataUrl += '&subType=' + subType;
+      }
+
+      if (onlySubtype) {
+        dataUrl += '&onlySubtype=' + onlySubtype;
+      }
+
+      if (subName) {
+        dataUrl += '&subName=' + subName;
+        $('#contrib_custom_set' + subName).show();
+      }
+      else {
+        $('#contrib_custom_set').show();
+      }
+      if (groupID) {
+        dataUrl += '&groupID=' + groupID;
+      }
+
+      {/literal}
+      {if $groupID}
+        dataUrl += '&groupID=' + '{$groupID}';
+      {/if}
+      {if $entityID}
+        dataUrl += '&entityID=' + '{$entityID}';
+      {/if}
+      {if $qfKey}
+        dataUrl += '&qf=' + '{$qfKey}';
+      {/if}
+      {literal}
+       
+       
+       dataUrl += '&cgcount=' + cgCount;
+       
+      if (!cgCount) {
+        cgCount = 1;
+      }
+      else if (cgCount >= 1) {
+        prevCount = cgCount;
+        cgCount++;
+      }
+
+      
+
+
+      if (isMultiple) {
+        fname = '#hidden_custom_group_count_' + groupID + '_' + prevCount;
+        if ($(".add-more-link-" + groupID + "-" + prevCount).length) {
+          $(".add-more-link-" + groupID + "-" + prevCount).hide();
+        }
+        else {
+          $("#add-more-link-" + prevCount).hide();
+        }
+      }
+      else if (subName && subName != 'null') {
+        fname += subName;
+      }
+
+      return CRM.loadPage(dataUrl, {target: fname});
+    };
+  })(CRM.$);
+</script>
+{/literal}
+

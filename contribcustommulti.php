@@ -1,7 +1,7 @@
 <?php
 
 require_once 'contribcustommulti.civix.php';
-require_once 'CRM/LCD/contribcustommulti/Form/CustomData.php';
+require_once 'CRM/LCD/Custom/Form/CustomData.php';
 
 /**
  * Implements hook_civicrm_config().
@@ -173,7 +173,7 @@ function contribcustommulti_civicrm_buildForm($formName, &$form) {
     $custom_default = CRM_Core_BAO_CustomGroup::setDefaults($form->_groupTree, $defaults, FALSE, FALSE, $form->get('action'));
     $form->setDefaults($custom_default);
     CRM_Core_Region::instance('page-body')->add(array(
-      'template' => "CRM/LCD/contribcustommulti/Form/CustomData.tpl"
+      'template' => "CRM/LCD/Custom/Form/CustomDataType.tpl"
     ));  
   }
   if( $formName == 'CRM_Custom_Form_CustomDataByType' && ( $form->getVar( '_type' ) == 'Contribution' )) {
@@ -196,14 +196,14 @@ function contribcustommulti_civicrm_preProcess($formName, &$form) {
     $form->assign('_groupTree', $form->_groupTree);
     foreach($form->_groupTree as $key => $cached_tree){
       foreach($cached_tree['fields'] as $field_key => $cached_tree_fields){
-        $fieldId = $cached_tree_fields['id'];
-        $required = CRM_Utils_Array::value('is_required', $cached_tree_fields);
-        if ($cached_tree_fields['data_type'] == 'File') {
-          if (!empty($cached_tree_fields['element_value']['data'])) {
-            $required = 0;
-          }
-        }
         foreach($cached_tree_fields as $element_key=>$field_value){
+          $required = CRM_Utils_Array::value('is_required', $field_value);
+          if ($field_value['data_type'] == 'File') {
+            if (!empty($field_value['element_value']['data'])) {
+              $required = 0;
+            }
+          }
+          $fieldId = $field_value['id'];
           $elementName = $field_value['element_name'];
           CRM_Core_BAO_CustomField::addQuickFormElement($form, $elementName, $fieldId, $required);
           $defaults[$elementName] = $field_value['element_value'];
@@ -211,5 +211,23 @@ function contribcustommulti_civicrm_preProcess($formName, &$form) {
       }
     }
     $form->setDefaults($defaults);
+  }
+}
+/**
+ * Implements hook_civicrm_postProcess().
+ *
+ * @param string $formName
+ * @param CRM_Core_Form $form
+ */
+function contribcustommulti_civicrm_postProcess($formName, &$form) {
+  if ( is_a( $form, 'CRM_Contribute_Form_Contribution' ) ) {
+    $data = $form->getVar('_submitValues');
+    $id = $form->getVar('_id');
+    foreach($data as $key=>$value){
+      if(stripos($key, 'custom') === 0) {
+      $params = array('id' => $id, 'entity_table' => 'Contribution', $key => $value);
+      $result = civicrm_api3('Contribution', 'create', $params);
+      }
+    }
   }
 }
