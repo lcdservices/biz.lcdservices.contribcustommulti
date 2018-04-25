@@ -23,56 +23,31 @@
  | see the CiviCRM license FAQ at http://civicrm.org/licensing        |
  +--------------------------------------------------------------------+
 *}
-<div id="contrib_custom_set">
-{foreach from=$_groupTree item=cd_edit key=group_id}
-  {if $cd_edit.is_multiple eq 1}
-    {assign var=tableID value=$cd_edit.table_id}
-    {assign var=divName value=$group_id|cat:"_$tableID"}
-    <div></div>
-    <div
-     class="crm-accordion-wrapper crm-custom-accordion {if $cd_edit.collapse_display and !$skipTitle}collapsed{/if}">
-  {else}
-    <div id="{$cd_edit.name}"
-       class="crm-accordion-wrapper crm-custom-accordion {if $cd_edit.collapse_display}collapsed{/if}">
-  {/if}
-    <div class="crm-accordion-header">
-      {$cd_edit.title}
-    </div>
 
-    <div id="customData{$group_id}" class="crm-accordion-body">
-      {include file="CRM/LCD/Custom/Form/CustomData.tpl" formEdit=true}
-    </div>
-    <!-- crm-accordion-body-->
-  </div>
-  {/foreach}
-</div>
-
+<div class="custom_field-help-pre-row -row-help-pre" id="custom_set">
 {literal}
 <script type="text/javascript">
   (function($) {
-    $('#contrib_custom_set').insertBefore('div#softCredit:first');
-  })(CRM.$);
-</script>
-{/literal}
-
-{literal}
-<script type="text/javascript">
-  (function($) {
-    CRM.addmoreCustomData = function (type, subType, subName, cgCount, groupID, isMultiple, maxMultiple) {
-      var dataUrl = CRM.url('civicrm/contrib/contribcustommulti', {type: type}),
+    CRM.buildCustomDataSet = function (type, subType, subName, cgCount, groupID, isMultiple, onlySubtype) {
+      var dataUrl = CRM.url('civicrm/custom', {type: type}),
         prevCount = 1,
-        fname = '#contrib_custom_set',
+        fname = '#custom_set',
         storage = {};
 
       if (subType) {
         dataUrl += '&subType=' + subType;
       }
+
+      if (onlySubtype) {
+        dataUrl += '&onlySubtype=' + onlySubtype;
+      }
+
       if (subName) {
         dataUrl += '&subName=' + subName;
-        $('#contrib_custom_set' + subName).show();
+        $('#custom_set' + subName).show();
       }
       else {
-        $('#contrib_custom_set').show();
+        $('#custom_set').show();
       }
       if (groupID) {
         dataUrl += '&groupID=' + groupID;
@@ -89,10 +64,7 @@
         dataUrl += '&qf=' + '{$qfKey}';
       {/if}
       {literal}
-       
-       
-       dataUrl += '&cgcount=' + cgCount;
-       
+
       if (!cgCount) {
         cgCount = 1;
       }
@@ -101,21 +73,17 @@
         cgCount++;
       }
 
-      
+      dataUrl += '&cgcount=' + cgCount;
 
 
       if (isMultiple) {
-        fname = '#hidden_custom_group_count_' + groupID + '_' + prevCount;
-        if( maxMultiple === '' || maxMultiple > prevCount){
-          $('div#customData'+ groupID +' table > tbody').append('<tr id="hidden_custom_group_count_'+ groupID +'_'+ cgCount + '"></tr>');
+        fname = '#custom_group_' + groupID + '_' + prevCount;
+        if ($(".add-more-link-" + groupID + "-" + prevCount).length) {
+          $(".add-more-link-" + groupID + "-" + prevCount).hide();
         }
         else {
           $("#add-more-link-" + prevCount).hide();
         }
-        var div_id = $(".add-more-link-" + groupID + "-" + prevCount).attr('id');
-        $("#add-more-link-" + prevCount + ' a').attr('onclick',"CRM.addmoreCustomData('"+ type +"','', '', "+ cgCount +", "+ groupID +", true, "+ maxMultiple+"); return false;");
-        var updated_divID = 'add-more-link-'+cgCount;
-        $(".add-more-link-" + groupID + "-" + prevCount).attr('id', updated_divID);
       }
       else if (subName && subName != 'null') {
         fname += subName;
@@ -126,4 +94,18 @@
   })(CRM.$);
 </script>
 {/literal}
+</div>
 
+{literal}
+<script type="text/javascript">
+  (function($) {
+    $('#custom_set').insertBefore('div#softCredit:first');
+    {/literal}
+    CRM.buildCustomDataSet( '{$customDataType}' );
+    {if $customDataSubType}
+      CRM.buildCustomDataSet( '{$customDataType}', {$customDataSubType} );
+    {/if}
+    {literal}
+  })(CRM.$);
+</script>
+{/literal}

@@ -197,7 +197,6 @@ class CRM_Contrib_Form_CustomData {
     // Convert multi-value strings to arrays
     $sp = CRM_Core_DAO::VALUE_SEPARATOR;
     foreach ($result as $gid => $field_value) {
-      
       if(is_numeric($gid)){
         $group_id = $gid;
         $values[$gid] = array();
@@ -275,7 +274,39 @@ class CRM_Contrib_Form_CustomData {
           }
         }
       }
-      $formattedGroupTree[$key]['fields'] = $values[$key];
+      if(!empty($values[$key])){
+        $formattedGroupTree[$key]['fields'] = $values[$key];
+      }
+      else{
+        foreach ($value['fields'] as $k => $properties) {
+          $properties['element_name'] = "custom_{$k}";
+          $properties['element_value'] = '';
+          if (isset($properties['customValue']) &&
+            !CRM_Utils_System::isNull($properties['customValue']) &&
+            !isset($properties['element_value'])
+          ) {
+            if (isset($properties['customValue'][$groupCount])) {
+              $properties['element_name'] = "custom_{$k}_{$properties['customValue'][$groupCount]['id']}";
+              $formattedGroupTree[$key]['table_id'] = $properties['customValue'][$groupCount]['id'];
+              if ($properties['data_type'] == 'File') {
+                $properties['element_value'] = $properties['customValue'][$groupCount];
+                $uploadNames[] = $properties['element_name'];
+              }
+              else {
+                $properties['element_value'] = $properties['customValue'][$groupCount]['data'];
+              }
+            }
+          }
+          if ($value = CRM_Utils_Request::retrieve($properties['element_name'], 'String', $form, FALSE, NULL, 'POST')) {
+            $formValues[$properties['element_name']] = $value;
+          }
+          elseif (isset($submittedValues[$properties['element_name']])) {
+            $properties['element_value'] = $submittedValues[$properties['element_name']];
+          }
+          unset($properties['customValue']);
+          $formattedGroupTree[$key]['fields'][0][$k] = $properties;
+        }
+      }
     }
     if ($form) {
       if (count($formValues)) {

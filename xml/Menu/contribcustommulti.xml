@@ -6,4 +6,10 @@
     <title>Multi-records Add More Custom Data</title>
     <access_arguments>make online contributions</access_arguments>
   </item>
+  <item>
+     <path>civicrm/ajax/multicustomvalue</path>
+     <page_callback>CRM_contribcustommulti_Page_AJAX::deleteCustomValue</page_callback>
+     <access_arguments>access CiviCRM</access_arguments>
+     <page_type>3</page_type>
+</item>
 </menu>

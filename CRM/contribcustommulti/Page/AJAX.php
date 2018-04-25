@@ -1,4 +1,5 @@
-{*
+<?php
+/*
  +--------------------------------------------------------------------+
  | CiviCRM version 4.7                                                |
  +--------------------------------------------------------------------+
@@ -22,32 +23,28 @@
  | GNU Affero General Public License or the licensing of CiviCRM,     |
  | see the CiviCRM license FAQ at http://civicrm.org/licensing        |
  +--------------------------------------------------------------------+
-*}
-{assign var="element_name" value=$field_element.element_name}
-<td class="label">{$form.$element_name.label}{if $element.help_post}{help id=$element.id file="CRM/Custom/Form/CustomField.hlp" title=$element.label}{/if}</td>
-<td class="html-adjust">
-    {$form.$element_name.html}&nbsp;
-    {if $element.data_type eq 'File'}
-      {if $element.element_value.data}
-        <div class="crm-attachment-wrapper crm-entity" id="file_{$element_name}">
-          <span class="html-adjust"><br />
-            &nbsp;{ts}Attached File{/ts}: &nbsp;
-            {if $element.element_value.displayURL}
-              <a href="{$element.element_value.displayURL}" class='crm-image-popup crm-attachment'>
-                <img src="{$element.element_value.displayURL}" height = "{$element.element_value.imageThumbHeight}" width="{$element.element_value.imageThumbWidth}">
-              </a>
-            {else}
-               <a class="crm-attachment" href="{$element.element_value.fileURL}">{$element.element_value.fileName}</a>
-            {/if}
-            {if $element.element_value.deleteURL}
-              <a href="#" class="crm-hover-button delete-attachment" data-filename="{$element.element_value.fileName}" data-args="{$element.element_value.deleteURLArgs}" title="{ts}Delete File{/ts}"><span class="icon delete-icon"></span></a>
-            {/if}
-          </span>
-        </div>
-      {/if}
-    {elseif $element.html_type eq 'Autocomplete-Select'}
-      {if $element.data_type eq 'ContactReference'}
-        {include file="CRM/Custom/Form/ContactReference.tpl"}
-      {/if}
-    {/if}
-</td>
+ */
+
+/**
+ *
+ * @package CRM
+ * @copyright CiviCRM LLC (c) 2004-2018
+ *
+ */
+
+/**
+ * This class contains all contact related functions that are called using AJAX (jQuery)
+ */
+class CRM_contribcustommulti_Page_AJAX {
+  /**
+   * Delete custom value.
+   */
+  public static function deleteCustomValue() {
+    CRM_Utils_System::setHttpHeader('Content-Type', 'text/plain');
+    $customValueID = CRM_Utils_Type::escape($_REQUEST['valueID'], 'Positive');
+    $customGroupID = CRM_Utils_Type::escape($_REQUEST['groupID'], 'Positive');
+    CRM_Core_BAO_CustomValue::deleteCustomValue($customValueID, $customGroupID);
+    CRM_Utils_System::civiExit();
+  }
+
+}

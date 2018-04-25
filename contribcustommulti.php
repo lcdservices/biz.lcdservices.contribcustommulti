@@ -170,8 +170,6 @@ function contribcustommulti_civicrm_buildForm($formName, &$form) {
   }
   //add template to or Display Style option on Custom Data set form on Contribution page
   if( $formName == 'CRM_Contribute_Form_Contribution' ) {
-    $custom_default = CRM_Core_BAO_CustomGroup::setDefaults($form->_groupTree, $defaults, FALSE, FALSE, $form->get('action'));
-    $form->setDefaults($custom_default);
     CRM_Core_Region::instance('page-body')->add(array(
       'template' => "CRM/LCD/Custom/Form/CustomDataType.tpl"
     ));  
@@ -223,11 +221,14 @@ function contribcustommulti_civicrm_postProcess($formName, &$form) {
   if ( is_a( $form, 'CRM_Contribute_Form_Contribution' ) ) {
     $data = $form->getVar('_submitValues');
     $id = $form->getVar('_id');
+    $params = array();
+    $params['id'] = $id;
+    $params['entity_table'] = 'Contribution';
     foreach($data as $key=>$value){
       if(stripos($key, 'custom') === 0) {
-      $params = array('id' => $id, 'entity_table' => 'Contribution', $key => $value);
-      $result = civicrm_api3('Contribution', 'create', $params);
+      $params[$key] = $value;
       }
     }
+    $result = civicrm_api3('Contribution', 'create', $params);
   }
 }
