@@ -23,72 +23,46 @@
  | see the CiviCRM license FAQ at http://civicrm.org/licensing        |
  +--------------------------------------------------------------------+
 *}
+{* this template is used for adding/editing/deleting contributions and pledge payments *}
+{include file="CRM/Contribute/Form/Contribution.tpl"}
+<div id='customData'>{include file="CRM/contribcustommulti/Form/Edit/CustomData.tpl"}</div>
+
 {literal}
-<script type="text/javascript">
-  (function($) {
-    CRM.buildCustomDataContrib = function (type, subType, subName, cgCount, groupID, isMultiple, onlySubtype) {
-      var dataUrl = CRM.url('civicrm/custom', {type: type}),
-        prevCount = 1,
-        fname = '#customDataContrib',
-        storage = {};
 
-      if (subType) {
-        dataUrl += '&subType=' + subType;
-      }
+  <script type="text/javascript" >
+  CRM.$(function($) {
 
-      if (onlySubtype) {
-        dataUrl += '&onlySubtype=' + onlySubtype;
-      }
+    var values = $("#financial_type_id").val();
+      CRM.buildCustomData({/literal}"{$customDataType}"{literal}, values).one('crmLoad', function() {
+        loadMultiRecordFields(values);
+    });
 
-      if (subName) {
-        dataUrl += '&subName=' + subName;
-        $('#customDataContrib' + subName).show();
+    function loadMultiRecordFields(subTypeValues) {
+      if (subTypeValues === false) {
+        subTypeValues = null;
       }
-      else {
-        $('#customDataContrib').show();
+      else if (!subTypeValues) {
+        subTypeValues = {/literal}"{$paramSubType}"{literal};
       }
-      if (groupID) {
-        dataUrl += '&groupID=' + groupID;
+      function loadNextRecord(i, groupValue, groupCount) {
+        if (i < groupCount) {
+          CRM.buildCustomData({/literal}"{$customDataType}"{literal}, subTypeValues, null, i, groupValue, true).one('crmLoad', function() {
+            loadNextRecord(i+1, groupValue, groupCount);
+          });
+        }
       }
-
       {/literal}
-      {if $groupID}
-        dataUrl += '&groupID=' + '{$groupID}';
+      {foreach from=$customValueCount item="groupCount" key="groupValue"}
+      {if $groupValue}{literal}
+        loadNextRecord(1, {/literal}{$groupValue}{literal}, {/literal}{$groupCount}{literal});
+      {/literal}
       {/if}
-      {if $entityID}
-        dataUrl += '&entityID=' + '{$entityID}';
-      {/if}
-      {if $qfKey}
-        dataUrl += '&qf=' + '{$qfKey}';
-      {/if}
+      {/foreach}
       {literal}
+    }
 
-      if (!cgCount) {
-        cgCount = 1;
-      }
-      else if (cgCount >= 1) {
-        prevCount = cgCount;
-        cgCount++;
-      }
+    loadMultiRecordFields();
+  });
 
-      dataUrl += '&cgcount=' + cgCount;
-
-
-      if (isMultiple) {
-        fname = '#custom_group_' + groupID + '_' + prevCount;
-        if ($(".add-more-link-" + groupID + "-" + prevCount).length) {
-          $(".add-more-link-" + groupID + "-" + prevCount).hide();
-        }
-        else {
-          $("#add-more-link-" + prevCount).hide();
-        }
-      }
-      else if (subName && subName != 'null') {
-        fname += subName;
-      }
-
-      return CRM.loadPage(dataUrl, {target: fname});
-    };
-  })(CRM.$);
 </script>
 {/literal}

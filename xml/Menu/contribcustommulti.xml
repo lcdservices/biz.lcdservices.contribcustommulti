@@ -2,7 +2,7 @@
 <menu>
   <item>
     <path>civicrm/contrib/contribcustommulti</path>
-    <page_callback>CRM_contribcustommulti_Form_CustomData</page_callback>
+    <page_callback>CRM_contribcustommulti_Form_Contribution</page_callback>
     <title>Multi-records Add More Custom Data</title>
     <access_arguments>make online contributions</access_arguments>
   </item>

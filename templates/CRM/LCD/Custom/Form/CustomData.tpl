@@ -51,7 +51,7 @@
   </table>
   {if $cd_edit.is_multiple and ( ( $cd_edit.max_multiple eq '' )  or ( $cd_edit.max_multiple > 0 and $cd_edit.max_multiple >= $x ) ) }
     <div id="add-more-link-{$x}" class="add-more-link-{$group_id} add-more-link-{$group_id}-{$x}">
-      <a href="#" class="crm-hover-button" onclick="CRM.addmoreCustomData('{$cd_edit.extends}',{if $cd_edit.subtype}'{$cd_edit.subtype}'{else}'{$cd_edit.extends_entity_column_id}'{/if}, '', {$x}, {$group_id}, true, {$cd_edit.max_multiple}); return false;">
+      <a href="#" class="crm-hover-button" onclick="CRM.buildCustomDataContrib('{$cd_edit.extends}',{if $cd_edit.subtype}'{$cd_edit.subtype}'{else}'{$cd_edit.extends_entity_column_id}'{/if}, '', {$x}, {$group_id}, true, {$cd_edit.max_multiple}); return false;">
         <i class="crm-i fa-plus-circle"></i>
         {ts 1=$cd_edit.title}Another %1 record{/ts}
       </a>
