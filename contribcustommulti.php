@@ -175,8 +175,12 @@ function contribcustommulti_civicrm_buildForm($formName, &$form) {
  * @param string $formName
  * @param CRM_Core_Form $form
  */
-function contribcustommulti_civicrm_alterMenu(&$items) {
-  $items['civicrm/contact/view/contribution'] = array(
-    'page_callback' => 'CRM_contribcustommulti_Form_Contribution',
-  );
+function contribcustommulti_civicrm_alterTemplateFile($formName, &$form, $context, &$tplName) {
+  if( $formName == 'CRM_Custom_Form_CustomDataByType' && ($form->getVar( '_type' ) == 'Contribution') ) {
+    $possibleTpl = 'CRM/LCD/Custom/Form/CustomDataByType.tpl';
+    $template = CRM_Core_Smarty::singleton();
+    if ($template->template_exists($possibleTpl)) {
+      $tplName = $possibleTpl;
+    }
+  }
 }
