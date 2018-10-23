@@ -1,7 +1,6 @@
 <?php
 
 require_once 'contribcustommulti.civix.php';
-require_once 'CRM/contribcustommulti/Form/Edit/CustomData.php';
 
 /**
  * Implements hook_civicrm_config().
