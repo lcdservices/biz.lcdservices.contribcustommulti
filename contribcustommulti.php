@@ -183,3 +183,74 @@ function contribcustommulti_civicrm_alterTemplateFile($formName, &$form, $contex
     }
   }
 }
+
+function contribcustommulti_civicrm_postProcess($formName, &$form) {
+  Civi::log()->debug('postProcess', array(
+    'formName' => $formName,
+    //'form' => $form,
+    '$_REQUEST' => $_REQUEST,
+  ));
+
+  //handle contrib custom multi fields
+  if ($formName == 'CRM_Contribute_Form_Contribution') {
+    $fieldIds = _contribcustommulti_getContribCustomMulti();
+
+    //extract custom data from $_REQUEST
+    $customRows = array();
+    foreach ($_REQUEST as $field => $value) {
+      if (strpos($field, 'custom_') !== FALSE) {
+        $parts = explode('_', $field);
+        Civi::log()->debug('contribcustommulti_civicrm_postProcess', array('$parts' => $parts));
+        if (in_array($parts[1], $fieldIds)) {
+          $customRows[$parts[2]][$parts[1]] = $value;
+        }
+      }
+    }
+    //Civi::log()->debug('contribcustommulti_civicrm_postProcess', array('$customRows' => $customRows));
+
+    //cycle through custom rows and save to the contact
+    foreach ($customRows as $row) {
+      //if the row key is a number, that represents the row in the custom table
+      //if the row key starts with a "-" it indicates a new value
+    }
+  }
+}
+
+function contribcustommulti_civicrm_post($op, $objectName, $objectId, &$objectRef) {
+  /*Civi::log()->debug('post', array(
+    '$op' => $op,
+    '$objectName' => $objectName,
+    '$objectId' => $objectId,
+    '$objectRef' => $objectRef,
+  ));*/
+}
+
+
+function _contribcustommulti_getContribCustomMulti() {
+  $fieldIds = array();
+
+  try {
+    $groups = civicrm_api3('CustomGroup', 'get', array(
+      'extends' => 'contribution',
+      'is_multiple' => 1,
+    ));
+    //Civi::log()->debug('_contribcustommulti_getContribCustomMulti', array('$groups' => $groups));
+
+    if ($groups['count']) {
+      foreach ($groups['values'] as $group) {
+        $fields = civicrm_api3('CustomField', 'get', array(
+          'custom_group_id' => $group['id'],
+          'is_active' => 1,
+        ));
+        //Civi::log()->debug('_contribcustommulti_getContribCustomMulti', array('$fields' => $fields));
+
+        foreach ($fields['values'] as $field) {
+          $fieldIds[] = $field['id'];
+        }
+      }
+    }
+  }
+  catch (CRM_API3_Exception $e) {}
+
+  return $fieldIds;
+}
