@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <extension key="biz.lcdservices.contribcustommulti" type="module">
   <file>contribcustommulti</file>
-  <name>Multi-records feature for Contibution</name>
-  <description>Exposes the multi-records functionality for Custom Data Set on Contibution</description>
+  <name>Contribution Multi-record Custom Data</name>
+  <description>Exposes the multi-records functionality for custom data on contribution records.</description>
   <license>AGPL-3.0</license>
   <maintainer>
     <author>Lighthouse Consulting and Design</author>
