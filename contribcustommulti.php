@@ -187,31 +187,38 @@ function contribcustommulti_civicrm_alterTemplateFile($formName, &$form, $contex
 function contribcustommulti_civicrm_postProcess($formName, &$form) {
   Civi::log()->debug('postProcess', array(
     'formName' => $formName,
-    //'form' => $form,
     '$_REQUEST' => $_REQUEST,
   ));
 
   //handle contrib custom multi fields
   if ($formName == 'CRM_Contribute_Form_Contribution') {
     $fieldIds = _contribcustommulti_getContribCustomMulti();
-
+	$values = $form->getVar('_values');
+	$entityID = $values['id'];
+	$customFieldExtends = 'Contribution';
     //extract custom data from $_REQUEST
     $customRows = array();
     foreach ($_REQUEST as $field => $value) {
-      if (strpos($field, 'custom_') !== FALSE) {
+      if (strpos($field, 'custom_') !== FALSE) {		
         $parts = explode('_', $field);
         Civi::log()->debug('contribcustommulti_civicrm_postProcess', array('$parts' => $parts));
         if (in_array($parts[1], $fieldIds)) {
-          $customRows[$parts[2]][$parts[1]] = $value;
+          $customRows[$parts[2]][$field] = $value;
         }
       }
-    }
+    }		
     //Civi::log()->debug('contribcustommulti_civicrm_postProcess', array('$customRows' => $customRows));
 
-    //cycle through custom rows and save to the contact
-    foreach ($customRows as $row) {
-      //if the row key is a number, that represents the row in the custom table
-      //if the row key starts with a "-" it indicates a new value
+    //cycle through custom rows and save to the contact	
+    foreach ($customRows as $key=>$row) {
+      $customData = CRM_Core_BAO_CustomField::postProcess($row,
+			  $entityID,
+			  $customFieldExtends
+			);
+			$entityTable = 'Contribution';
+      if (!empty($customData)) {
+        CRM_Core_BAO_CustomValueTable::store($customData, $entityTable, $entityID);
+      }
     }
   }
 }
