@@ -215,7 +215,7 @@ function contribcustommulti_civicrm_postProcess($formName, &$form) {
 			  $entityID,
 			  $customFieldExtends
 			);
-			$entityTable = 'Contribution';
+      $entityTable = 'Contribution';
       if (!empty($customData)) {
         CRM_Core_BAO_CustomValueTable::store($customData, $entityTable, $entityID);
       }
