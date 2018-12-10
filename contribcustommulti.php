@@ -167,7 +167,58 @@ function contribcustommulti_civicrm_buildForm($formName, &$form) {
       'template' => "CRM/LCD/group.tpl"
     ));
   }
+  if ($formName == 'CRM_Contribute_Form_Contribution_Main') {
+    $addTemplate = FALSE;
+    $contribMultiCustomGroupId  = _contribcustommulti_civicrm_is_multiple_contrib(
+      CRM_Core_Smarty::singleton()->get_template_vars('customPre')
+    );
+    if ($contribMultiCustomGroupId) {
+      $form->assign('contrib_multi_add_more_div', 'custom_pre_profile-group');
+      $form->assign('contrib_multi_add_more_cgid', $contribMultiCustomGroupId);
+      $customGroupName = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_CustomGroup', $contribMultiCustomGroupId, 'title');
+      $form->assign('contrib_multi_add_more_cg_title', $customGroupName);
+      $addTemplate = TRUE;
+    }
+    $contribMultiCustomGroupId  = _contribcustommulti_civicrm_is_multiple_contrib(
+      CRM_Core_Smarty::singleton()->get_template_vars('customPost')
+    );
+    if ($contribMultiCustomGroupId) {
+      $form->assign('contrib_multi_add_more_div', 'custom_post_profile-group');
+      $form->assign('contrib_multi_add_more_cgid', $contribMultiCustomGroupId);
+      $customGroupName = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_CustomGroup', $contribMultiCustomGroupId, 'title');
+      $form->assign('contrib_multi_add_more_cg_title', $customGroupName);
+      $addTemplate = TRUE;
+    }
+    if ($addTemplate) {
+      CRM_Core_Region::instance('page-body')->add(array(
+        'template' => "CRM/LCD/Form/Contribution/Main.tpl"
+      ));
+    }
+  }
 }
+
+/**
+ * Given custom-pre or custom-post block, identify if they contain any contribution
+ * multi record custom fields.
+ *
+ * @param array $customBlock
+ */
+function _contribcustommulti_civicrm_is_multiple_contrib($customBlock = array()) {
+  $customGroupId = NULL;
+  foreach ($customBlock as $name => $field) {
+    if ($field['field_type'] == 'Contribution') {
+      if (CRM_Core_BAO_CustomField::getKeyID($name) && $field['group_id']) {
+        $isMultiple = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_CustomGroup', $field['group_id'], 'is_multiple');
+        if ($isMultiple) {
+          $customGroupId = $field['group_id'];
+          return $customGroupId;
+        }
+      }
+    }
+  }
+  return FALSE;
+}
+
 /**
  * Implements hook_civicrm_alterMenu().
  *
