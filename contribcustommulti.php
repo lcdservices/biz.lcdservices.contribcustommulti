@@ -123,19 +123,6 @@ function contribcustommulti_civicrm_alterSettingsFolders(&$metaDataFolders = NUL
 }
 
 /**
- * Functions below this ship commented out. Uncomment as required.
- *
-
-/**
- * Implements hook_civicrm_preProcess().
- *
- * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_preProcess
- *
-function contribcustommulti_civicrm_preProcess($formName, &$form) {
-
-} // */
-
-/**
  * Implements hook_civicrm_navigationMenu().
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_navigationMenu
@@ -270,6 +257,39 @@ function contribcustommulti_civicrm_postProcess($formName, &$form) {
       if (!empty($customData)) {
         CRM_Core_BAO_CustomValueTable::store($customData, $entityTable, $entityID);
       }
+    }
+  }
+
+  // For contribution with profile - additional contrib multi rows won't be present in form.
+  // Here we filter and save them in session, so we pass onto Confirm step
+  if ($formName == 'CRM_Contribute_Form_Contribution_Main') {
+    $params = $form->controller->exportValues('Main');
+    $contribFields = CRM_Core_BAO_CustomField::getFieldsForImport('Contribution', false, false, false, true, true);
+    foreach ($_POST as $key => $val) {
+      if ($customFieldID = CRM_Core_BAO_CustomField::getKeyID($key)) {
+        if (array_key_exists("custom_{$customFieldID}", $contribFields) && !array_key_exists($key, $params)) {
+          $contribMultiParams[$key] = $val;
+        }
+      }
+    }
+    $form->set('contribMultiParams', $contribMultiParams);
+  }
+}
+
+/**
+ * Implements hook_civicrm_preProcess().
+ * Update params with custom multi records submitted from Main step.
+ *
+ * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_preProcess
+ */
+function contribcustommulti_civicrm_preProcess($formName, &$form) {
+  if ($formName == 'CRM_Contribute_Form_Contribution_Confirm') {
+    $params = $form->get('params');
+    $contribParams = $form->get('contribMultiParams');
+    if (!empty($contribParams)) {
+      $params = array_merge($params, $contribParams);
+      $form->_params = $params;
+      $form->set('params', $params);
     }
   }
 }
