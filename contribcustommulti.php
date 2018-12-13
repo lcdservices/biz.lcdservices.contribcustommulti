@@ -154,13 +154,16 @@ function contribcustommulti_civicrm_buildForm($formName, &$form) {
       'template' => "CRM/LCD/group.tpl"
     ));
   }
-  if ($formName == 'CRM_Contribute_Form_Contribution_Main') {
+  if ($formName == 'CRM_Contribute_Form_Contribution_Main' || 
+    $formName == 'CRM_Contribute_Form_Contribution_Confirm') {
     $addTemplate = FALSE;
     $contribMultiCustomGroupId  = _contribcustommulti_civicrm_is_multiple_contrib(
       CRM_Core_Smarty::singleton()->get_template_vars('customPre')
     );
     if ($contribMultiCustomGroupId) {
-      $form->assign('contrib_multi_add_more_div', 'custom_pre_profile-group');
+      $profileBlock = ($formName == 'CRM_Contribute_Form_Contribution_Main') 
+        ? 'custom_pre_profile-group' : 'crm-profile-view:first';
+      $form->assign('contrib_multi_add_more_div', $profileBlock);
       $form->assign('contrib_multi_add_more_cgid', $contribMultiCustomGroupId);
       $customGroupName = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_CustomGroup', $contribMultiCustomGroupId, 'title');
       $form->assign('contrib_multi_add_more_cg_title', $customGroupName);
@@ -170,7 +173,9 @@ function contribcustommulti_civicrm_buildForm($formName, &$form) {
       CRM_Core_Smarty::singleton()->get_template_vars('customPost')
     );
     if ($contribMultiCustomGroupId) {
-      $form->assign('contrib_multi_add_more_div', 'custom_post_profile-group');
+      $profileBlock = ($formName == 'CRM_Contribute_Form_Contribution_Main') 
+        ? 'custom_post_profile-group' : 'crm-profile-view:nth-child(2)';
+      $form->assign('contrib_multi_add_more_div', $profileBlock);
       $form->assign('contrib_multi_add_more_cgid', $contribMultiCustomGroupId);
       $customGroupName = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_CustomGroup', $contribMultiCustomGroupId, 'title');
       $form->assign('contrib_multi_add_more_cg_title', $customGroupName);
@@ -284,7 +289,8 @@ function contribcustommulti_civicrm_postProcess($formName, &$form) {
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_preProcess
  */
 function contribcustommulti_civicrm_preProcess($formName, &$form) {
-  if ($formName == 'CRM_Contribute_Form_Contribution_Main') {
+  if ($formName == 'CRM_Contribute_Form_Contribution_Main' || 
+    $formName == 'CRM_Contribute_Form_Contribution_Confirm') {
     $contribMultiParams = $form->get('contribMultiParams');
     $cgcount = 1;
     if (!empty($contribMultiParams)) {

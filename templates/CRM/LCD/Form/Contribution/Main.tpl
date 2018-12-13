@@ -18,6 +18,7 @@
 <script type="text/javascript">
   CRM.$(function($) {
     var cgid = {/literal}'{$contrib_multi_add_more_cgid}'{literal};
+    var formName = {/literal}'{$form.formName}'{literal};
     var profileBlk  = {/literal}'.{$contrib_multi_add_more_div}'{literal};
     var customWithMoreBlk  = {/literal}'#custom_group_{$contrib_multi_add_more_cgid}'{literal};
     $(customWithMoreBlk).appendTo(profileBlk);
@@ -33,15 +34,22 @@
       $.each(defaults, function(ele, value){
         if ($('#' + ele).length) {
           $('#' + ele).val(value);
-          // for selects trigger select2 as wel
+          // for selects trigger select2 as well
           $("select[id='"+ele+"']").val(value).trigger('change');
         } else {
           // elements with different id but same name, e.g radio
           $("input:radio[name='"+ ele +"'][id^='CIVICRM_QFID_"+ value   +"']").attr('checked', true);
         }
       });
+      // for confirm hide all add-more links
+      cgCount = (formName == 'Confirm') ? ++cgCount : cgCount; 
+      // hide all add-more links
       for (var cgc = 1; cgc < cgCount; cgc++) {
         $('#add-more-link-' + cgc).hide();
+      }
+      // on confirm page make fields read only
+      if (formName == 'Confirm') {
+        $(customWithMoreBlk).find("input,textarea,select").attr("disabled", "disabled");
       }
     });
   });
