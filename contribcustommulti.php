@@ -265,6 +265,7 @@ function contribcustommulti_civicrm_postProcess($formName, &$form) {
   if ($formName == 'CRM_Contribute_Form_Contribution_Main') {
     $params = $form->controller->exportValues('Main');
     $contribFields = CRM_Core_BAO_CustomField::getFieldsForImport('Contribution', false, false, false, true, true);
+    $contribMultiParams = array();
     foreach ($_POST as $key => $val) {
       if ($customFieldID = CRM_Core_BAO_CustomField::getKeyID($key)) {
         if (array_key_exists("custom_{$customFieldID}", $contribFields) && !array_key_exists($key, $params)) {
@@ -283,6 +284,24 @@ function contribcustommulti_civicrm_postProcess($formName, &$form) {
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_preProcess
  */
 function contribcustommulti_civicrm_preProcess($formName, &$form) {
+  if ($formName == 'CRM_Contribute_Form_Contribution_Main') {
+    $contribMultiParams = $form->get('contribMultiParams');
+    $cgcount = 1;
+    if (!empty($contribMultiParams)) {
+      $cgids = array();
+      foreach($contribMultiParams as $key => $val) {
+        if ($customFieldID = CRM_Core_BAO_CustomField::getKeyID($key)) {
+          $cgids[$customFieldID] = empty($cgids[$customFieldID]) ? 1 : ++$cgids[$customFieldID];
+        }
+      }
+      $cgcount = max($cgids) + 1;
+    }
+    $form->assign('contribMultiCgcount', $cgcount);
+    CRM_Core_Resources::singleton()->addVars('contribCustomMulti', array(
+      'cgcount'  => $cgcount,
+      'defaults' => $contribMultiParams
+    ));
+  }
   if ($formName == 'CRM_Contribute_Form_Contribution_Confirm') {
     $params = $form->get('params');
     $contribParams = $form->get('contribMultiParams');
