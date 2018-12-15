@@ -4,10 +4,10 @@
       <div id="custom_group_{$contrib_multi_add_more_cgid}_{$smarty.section.cgcount.index}"></div>
     {/section}
     {*include custom data js file*}
-    {include file="CRM/common/customData.tpl"}
+    {include file="CRM/LCD/common/customData.tpl"}
     {if $contribMultiCgcount lte 1}
     <div id="add-more-link-1" class="add-more-link-{$contrib_multi_add_more_cgid} add-more-link-{$contrib_multi_add_more_cgid}-1">
-      <a href="#" class="crm-hover-button" onclick="CRM.buildCustomData('Contribution','', '', 1, {$contrib_multi_add_more_cgid}, true, ''); return false;">
+      <a href="#" class="crm-hover-button" onclick="CRM.buildCustomData('Contribution','', '', 1, {$contrib_multi_add_more_cgid}, true, '', {$profile_id}); return false;">
         <i class="crm-i fa-plus-circle"></i>
         {ts 1=$contrib_multi_add_more_cg_title}Another %1 record{/ts}
       </a>
@@ -19,6 +19,7 @@
   CRM.$(function($) {
     var cgid = {/literal}'{$contrib_multi_add_more_cgid}'{literal};
     var formName = {/literal}'{$form.formName}'{literal};
+    var profileID  = {/literal}'{$profile_id}'{literal};
     var profileBlk  = {/literal}'.{$contrib_multi_add_more_div}'{literal};
     var customWithMoreBlk  = {/literal}'#custom_group_{$contrib_multi_add_more_cgid}'{literal};
     $(customWithMoreBlk).appendTo(profileBlk);
@@ -26,7 +27,7 @@
     var cgCount = CRM.vars.contribCustomMulti.cgcount;
     if (cgCount > 1) {
       for (var cgc = 1; cgc < cgCount; cgc++) {
-        CRM.buildCustomData('Contribution','', '', cgc, cgid, true, '');
+        CRM.buildCustomData('Contribution','', '', cgc, cgid, true, '', profileID);
       }
     }
     var defaults = CRM.vars.contribCustomMulti.defaults;
@@ -51,6 +52,7 @@
       if (formName == 'Confirm') {
         $(customWithMoreBlk).find("input,textarea,select").attr("disabled", "disabled");
       }
+      $(customWithMoreBlk + ' .crm-accordion-body').css('border','0');
     });
   });
 </script>

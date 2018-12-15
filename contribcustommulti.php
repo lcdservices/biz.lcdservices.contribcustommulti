@@ -165,6 +165,7 @@ function contribcustommulti_civicrm_buildForm($formName, &$form) {
         ? 'custom_pre_profile-group' : 'crm-profile-view:first';
       $form->assign('contrib_multi_add_more_div', $profileBlock);
       $form->assign('contrib_multi_add_more_cgid', $contribMultiCustomGroupId);
+      $form->assign('profile_id', $form->_values['custom_pre_id']);
       $customGroupName = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_CustomGroup', $contribMultiCustomGroupId, 'title');
       $form->assign('contrib_multi_add_more_cg_title', $customGroupName);
       $addTemplate = TRUE;
@@ -177,6 +178,7 @@ function contribcustommulti_civicrm_buildForm($formName, &$form) {
         ? 'custom_post_profile-group' : 'crm-profile-view:nth-child(2)';
       $form->assign('contrib_multi_add_more_div', $profileBlock);
       $form->assign('contrib_multi_add_more_cgid', $contribMultiCustomGroupId);
+      $form->assign('profile_id', $form->_values['custom_custom_id']);
       $customGroupName = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_CustomGroup', $contribMultiCustomGroupId, 'title');
       $form->assign('contrib_multi_add_more_cg_title', $customGroupName);
       $addTemplate = TRUE;
@@ -284,11 +286,32 @@ function contribcustommulti_civicrm_postProcess($formName, &$form) {
 
 /**
  * Implements hook_civicrm_preProcess().
- * Update params with custom multi records submitted from Main step.
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_preProcess
  */
 function contribcustommulti_civicrm_preProcess($formName, &$form) {
+  // on ajax calls to inject custom sets on online contribution pages using profile,
+  // filter grouptree to remove any fields not included in profile.
+  if ($formName == 'CRM_Custom_Form_CustomDataByType') {
+    $gId = $form->_groupID;
+    $profileId = CRM_Utils_Request::retrieve('profileID', 'Positive');
+    if ($profileId && $gId) {
+      $form->assign('profileID', $profileId);
+      $profileFields = CRM_Core_BAO_UFGroup::getFields($profileId, FALSE, CRM_Core_Action::ADD, NULL, NULL, FALSE,
+        NULL, FALSE, NULL, CRM_Core_Permission::CREATE, NULL
+      );
+      $groupTree =& $form->_groupTree;
+      if (!empty($groupTree[$gId]) && $groupTree[$gId]['is_multiple'] == 1) {
+        foreach ($groupTree[$gId]['fields'] as $fid => $values) {
+          if (!array_key_exists("custom_{$fid}", $profileFields)) {
+            unset($groupTree[$gId]['fields'][$fid]);
+          }
+        }
+      }
+    }
+  }
+  // Get ready with number of initial rows to display, and set defaults if using 
+  // prev and next buttons.
   if ($formName == 'CRM_Contribute_Form_Contribution_Main' || 
     $formName == 'CRM_Contribute_Form_Contribution_Confirm') {
     $contribMultiParams = $form->get('contribMultiParams');
@@ -308,6 +331,8 @@ function contribcustommulti_civicrm_preProcess($formName, &$form) {
       'defaults' => $contribMultiParams
     ));
   }
+  // on confirm set params in session, so injected contrib multi params gets picked up
+  // and stored in DB
   if ($formName == 'CRM_Contribute_Form_Contribution_Confirm') {
     $params = $form->get('params');
     $contribParams = $form->get('contribMultiParams');
