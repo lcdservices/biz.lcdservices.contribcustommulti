@@ -66,10 +66,10 @@
       {/if}
       {literal}
 
-      if (!cgCount) {
+      if (cgCount === undefined || cgCount === null) {
         cgCount = 1;
       }
-      else if (cgCount >= 1) {
+      else if (cgCount >= 0) {
         prevCount = cgCount;
         cgCount++;
       }

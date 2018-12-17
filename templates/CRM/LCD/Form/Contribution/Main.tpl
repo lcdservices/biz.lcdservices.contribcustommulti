@@ -1,18 +1,11 @@
 {if $contrib_multi_add_more_cgid}
   <span id="custom_group_{$contrib_multi_add_more_cgid}">
-    {section name=cgcount start=1 loop=$contribMultiCgcount+1}
-      <div id="custom_group_{$contrib_multi_add_more_cgid}_{$smarty.section.cgcount.index}"></div>
+    <div id="custom_group_{$contrib_multi_add_more_cgid}_0"></div>
+    {section name=cgcount start=1 loop=$contribMultiCgcount}
+      <div id="custom_group_{$contrib_multi_add_more_cgid}_{$smarty.section.cgcount.index}" {if $smarty.section.cgcount.index eq 1}class="custom_group_{$contrib_multi_add_more_cgid}_0"{/if}></div>
     {/section}
     {*include custom data js file*}
     {include file="CRM/LCD/common/customData.tpl"}
-    {if $contribMultiCgcount lte 1}
-    <div id="add-more-link-1" class="add-more-link-{$contrib_multi_add_more_cgid} add-more-link-{$contrib_multi_add_more_cgid}-1">
-      <a href="#" class="crm-hover-button" onclick="CRM.buildCustomData('Contribution','', '', 1, {$contrib_multi_add_more_cgid}, true, '', {$profile_id}); return false;">
-        <i class="crm-i fa-plus-circle"></i>
-        {ts 1=$contrib_multi_add_more_cg_title}Another %1 record{/ts}
-      </a>
-    </div>
-    {/if}
   </span>
 {literal}
 <script type="text/javascript">
@@ -23,6 +16,14 @@
     var profileBlk  = {/literal}'.{$contrib_multi_add_more_div}'{literal};
     var customWithMoreBlk  = {/literal}'#custom_group_{$contrib_multi_add_more_cgid}'{literal};
     $(customWithMoreBlk).appendTo(profileBlk);
+
+    // load first set of contrib custom set row
+    CRM.buildCustomData('Contribution','', '', 0, cgid, true, '', profileID);
+
+    // hide contrib multi custom fields from profile, so they could be displayed in tabular format
+    $.each(CRM.vars.contribCustomMulti.profileFields, function(index, element) {
+      $('#editrow-'+element).hide();
+    });
 
     var cgCount = CRM.vars.contribCustomMulti.cgcount;
     if (cgCount > 1) {
@@ -44,7 +45,8 @@
       });
       // for confirm hide all add-more links
       cgCount = (formName == 'Confirm') ? ++cgCount : cgCount; 
-      // hide all add-more links
+      // when there are more than 1 rows to be rendered - 
+      // hide all add-more links, other than the last one.
       for (var cgc = 1; cgc < cgCount; cgc++) {
         $('#add-more-link-' + cgc).hide();
       }
@@ -52,7 +54,7 @@
       if (formName == 'Confirm') {
         $(customWithMoreBlk).find("input,textarea,select").attr("disabled", "disabled");
       }
-      $(customWithMoreBlk + ' .crm-accordion-body').css('border','0');
+      //$(customWithMoreBlk + ' .crm-accordion-body').css('border','0');
     });
   });
 </script>

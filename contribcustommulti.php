@@ -169,6 +169,9 @@ function contribcustommulti_civicrm_buildForm($formName, &$form) {
       $customGroupName = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_CustomGroup', $contribMultiCustomGroupId, 'title');
       $form->assign('contrib_multi_add_more_cg_title', $customGroupName);
       $addTemplate = TRUE;
+      _contribcustommulti_civicrm_assign_multiple_contrib_fields(
+        CRM_Core_Smarty::singleton()->get_template_vars('customPre')
+      );
     }
     $contribMultiCustomGroupId  = _contribcustommulti_civicrm_is_multiple_contrib(
       CRM_Core_Smarty::singleton()->get_template_vars('customPost')
@@ -182,6 +185,9 @@ function contribcustommulti_civicrm_buildForm($formName, &$form) {
       $customGroupName = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_CustomGroup', $contribMultiCustomGroupId, 'title');
       $form->assign('contrib_multi_add_more_cg_title', $customGroupName);
       $addTemplate = TRUE;
+      _contribcustommulti_civicrm_assign_multiple_contrib_fields(
+        CRM_Core_Smarty::singleton()->get_template_vars('customPost')
+      );
     }
     if ($addTemplate) {
       CRM_Core_Region::instance('page-body')->add(array(
@@ -211,6 +217,29 @@ function _contribcustommulti_civicrm_is_multiple_contrib($customBlock = array())
     }
   }
   return FALSE;
+}
+
+/**
+ * Given custom-pre or custom-post block, build a js array of contribution multi custom fields
+ * included in the profile.
+ *
+ * @param array $customBlock
+ */
+function _contribcustommulti_civicrm_assign_multiple_contrib_fields($customBlock = array()) {
+  $mFields = array();
+  foreach ($customBlock as $name => $field) {
+    if ($field['field_type'] == 'Contribution') {
+      if (CRM_Core_BAO_CustomField::getKeyID($name) && $field['group_id']) {
+        $isMultiple = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_CustomGroup', $field['group_id'], 'is_multiple');
+        if ($isMultiple) {
+          $mFields[] = $name; 
+        }
+      }
+    }
+  }
+  CRM_Core_Resources::singleton()->addVars('contribCustomMulti', array(
+    'profileFields' => $mFields
+  ));
 }
 
 /**
@@ -244,7 +273,7 @@ function contribcustommulti_civicrm_postProcess($formName, &$form) {
     //extract custom data from $_REQUEST
     $customRows = array();
     foreach ($_REQUEST as $field => $value) {
-      if (strpos($field, 'custom_') !== FALSE) {		
+      if (strpos($field, 'custom_') !== FALSE) {
         $parts = explode('_', $field);
         Civi::log()->debug('contribcustommulti_civicrm_postProcess', array('$parts' => $parts));
         if (in_array($parts[1], $fieldIds)) {
@@ -323,7 +352,7 @@ function contribcustommulti_civicrm_preProcess($formName, &$form) {
           $cgids[$customFieldID] = empty($cgids[$customFieldID]) ? 1 : ++$cgids[$customFieldID];
         }
       }
-      $cgcount = max($cgids) + 1;
+      $cgcount = max($cgids);
     }
     $form->assign('contribMultiCgcount', $cgcount);
     CRM_Core_Resources::singleton()->addVars('contribCustomMulti', array(
