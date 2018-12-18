@@ -4,21 +4,24 @@
 <script type="text/javascript">
   CRM.$(function($) {
     var tabOption;
-    var inlineOption;
     var tabWithTableOption;
-    var used_for = $( "#extends_0" ).val();
-    showStyle();
     $('input#is_multiple').change(showStyle);
-    function showStyle(onFormLoad) {
-      if( ( $("#is_multiple").is(':checked') || $('#is_multiple').val() != '')  && used_for === 'Contribution') {
-        if (onFormLoad !== true) {
-          $("select#style").append(inlineOption);
+    function showStyle() {
+      if($( "#extends_0" ).val() === 'Contribution') {
+        if($("#is_multiple").is(':checked')) {
           $("select#style").val('Inline');
+          $("tr#style_row").show();
+          $("tr#multiple_row").show();
+
           tabOption = $("select#style option[value='Tab']").detach();
           tabWithTableOption = $("select#style option[value='Tab with table']").detach();
+        } else {
+          $("select#style").append(tabWithTableOption);
+          $("select#style").append(tabOption);
+          $("tr#style_row").hide();
+          $("tr#multiple_row").hide();
         }
       }
-      
     }
   });
 </script>
