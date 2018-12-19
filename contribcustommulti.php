@@ -195,6 +195,36 @@ function contribcustommulti_civicrm_buildForm($formName, &$form) {
       ));
     }
   }
+
+  // Contribution edit form - load more rows if present
+  // TODO: Something for next phase - we assuming only 1 multi custom set at the moment. 
+  if ($formName == 'CRM_Contribute_Form_Contribution') {
+    $entityID = $form->getVar('_id');
+    if ($entityID) {
+      $groups = civicrm_api3('CustomGroup', 'get', array(
+        'extends' => 'contribution',
+        'is_multiple' => 1,
+      ));
+      if (!empty($groups['values'])) {
+        foreach ($groups['values'] as $gid => $group) {
+          if ($group['table_name']) {
+            $sql = "select count(*) from {$group['table_name']} where entity_id = %1";
+            $totalCgCount = CRM_Core_DAO::singleValueQuery($sql, array(1 => array($entityID, 'Integer')));
+            if ($totalCgCount > 1) {
+              CRM_Core_Region::instance('page-body')->add(array(
+                'template' => "CRM/LCD/Form/Contribution/Contribution.tpl"
+              ));
+              CRM_Core_Resources::singleton()->addVars('contribCustomMulti', array(
+                'cgid' => $gid,
+                'totalcgcount' => $totalCgCount,
+              ));
+              break;
+            }
+          }
+        }
+      }
+    }
+  }
 }
 
 /**
