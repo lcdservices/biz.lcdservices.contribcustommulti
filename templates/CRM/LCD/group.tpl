@@ -5,11 +5,12 @@
   CRM.$(function($) {
     var tabOption;
     var tabWithTableOption;
+    showStyle();
     $('input#is_multiple').change(showStyle);
     function showStyle() {
       if($( "#extends_0" ).val() === 'Contribution') {
-        if($("#is_multiple").is(':checked')) {
-          $("select#style").val('Inline');
+        $("select#style").val('Inline');//always inline for Contribution
+        if($("#is_multiple").is(':checked') || $("input:hidden#is_multiple").val() == '1') {
           $("tr#style_row").show();
           $("tr#multiple_row").show();
 
