@@ -155,7 +155,9 @@ function contribcustommulti_civicrm_buildForm($formName, &$form) {
     ));
   }
   if ($formName == 'CRM_Contribute_Form_Contribution_Main' || 
-    $formName == 'CRM_Contribute_Form_Contribution_Confirm') {
+    $formName == 'CRM_Contribute_Form_Contribution_Confirm' ||
+    $formName == 'CRM_Contribute_Form_Contribution_ThankYou'
+  ) {
     $addTemplate = FALSE;
     $contribMultiCustomGroupId  = _contribcustommulti_civicrm_is_multiple_contrib(
       CRM_Core_Smarty::singleton()->get_template_vars('customPre')
@@ -178,10 +180,10 @@ function contribcustommulti_civicrm_buildForm($formName, &$form) {
     );
     if ($contribMultiCustomGroupId) {
       $profileBlock = ($formName == 'CRM_Contribute_Form_Contribution_Main') 
-        ? 'custom_post_profile-group' : 'crm-profile-view:nth-child(2)';
+        ? 'custom_post_profile-group' : 'crm-profile-view:eq(1)';
       $form->assign('contrib_multi_add_more_div', $profileBlock);
       $form->assign('contrib_multi_add_more_cgid', $contribMultiCustomGroupId);
-      $form->assign('profile_id', $form->_values['custom_custom_id']);
+      $form->assign('profile_id', $form->_values['custom_post_id']);
       $customGroupName = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_CustomGroup', $contribMultiCustomGroupId, 'title');
       $form->assign('contrib_multi_add_more_cg_title', $customGroupName);
       $addTemplate = TRUE;
@@ -237,11 +239,13 @@ function _contribcustommulti_civicrm_is_multiple_contrib($customBlock = array())
   $customGroupId = NULL;
   foreach ($customBlock as $name => $field) {
     if ($field['field_type'] == 'Contribution') {
-      if (CRM_Core_BAO_CustomField::getKeyID($name) && $field['group_id']) {
-        $isMultiple = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_CustomGroup', $field['group_id'], 'is_multiple');
-        if ($isMultiple) {
-          $customGroupId = $field['group_id'];
-          return $customGroupId;
+      if ($customFieldId = CRM_Core_BAO_CustomField::getKeyID($name)) {
+        $customGroupId = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_CustomField', $customFieldId, 'custom_group_id');
+        if ($customGroupId) {
+          $isMultiple = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_CustomGroup', $customGroupId, 'is_multiple');
+          if ($isMultiple) {
+            return $customGroupId;
+          }
         }
       }
     }
@@ -259,10 +263,13 @@ function _contribcustommulti_civicrm_assign_multiple_contrib_fields($customBlock
   $mFields = array();
   foreach ($customBlock as $name => $field) {
     if ($field['field_type'] == 'Contribution') {
-      if (CRM_Core_BAO_CustomField::getKeyID($name) && $field['group_id']) {
-        $isMultiple = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_CustomGroup', $field['group_id'], 'is_multiple');
-        if ($isMultiple) {
-          $mFields[] = $name; 
+      if ($customFieldId = CRM_Core_BAO_CustomField::getKeyID($name)) {
+        $customGroupId = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_CustomField', $customFieldId, 'custom_group_id');
+        if ($customGroupId) {
+          $isMultiple = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_CustomGroup', $customGroupId, 'is_multiple');
+          if ($isMultiple) {
+            $mFields[] = $name; 
+          }
         }
       }
     }
@@ -372,6 +379,7 @@ function contribcustommulti_civicrm_preProcess($formName, &$form) {
   // Get ready with number of initial rows to display, and set defaults if using 
   // prev and next buttons.
   if ($formName == 'CRM_Contribute_Form_Contribution_Main' || 
+    $formName == 'CRM_Contribute_Form_Contribution_ThankYou' ||
     $formName == 'CRM_Contribute_Form_Contribution_Confirm') {
     $contribMultiParams = $form->get('contribMultiParams');
     $cgcount = 1;

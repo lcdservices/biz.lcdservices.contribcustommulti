@@ -51,7 +51,7 @@
         $('#add-more-link-' + cgc).hide();
       }
       // on confirm page make fields read only
-      if (formName == 'Confirm') {
+      if (formName == 'Confirm' || formName == 'ThankYou') {
         $(customWithMoreBlk).find("input,textarea,select").attr("disabled", "disabled");
       }
       //$(customWithMoreBlk + ' .crm-accordion-body').css('border','0');
