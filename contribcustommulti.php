@@ -149,15 +149,14 @@ function contribcustommulti_civicrm_buildForm($formName, &$form) {
   if( $formName == 'CRM_Custom_Form_Group' ) {
     $contactTypes = array('Contact', 'Individual', 'Household', 'Organization', 'Contribution');
     $form->assign('contactTypes', json_encode($contactTypes));
-    //add template to run jquery for Display Style option on Custom Data set form
-    CRM_Core_Region::instance('page-body')->add(array(
-      'template' => "CRM/LCD/group.tpl"
-    ));
+    CRM_Core_Resources::singleton()->addScriptFile('biz.lcdservices.contribcustommulti', 'js/custom_group.js');
   }
-  if ($formName == 'CRM_Contribute_Form_Contribution_Main' || 
-    $formName == 'CRM_Contribute_Form_Contribution_Confirm' ||
-    $formName == 'CRM_Contribute_Form_Contribution_ThankYou'
-  ) {
+
+  if (in_array($formName, array(
+    'CRM_Contribute_Form_Contribution_Main',
+    'CRM_Contribute_Form_Contribution_Confirm',
+    'CRM_Contribute_Form_Contribution_ThankYou'
+  ))) {
     $addTemplate = FALSE;
     $contribMultiCustomGroupId  = _contribcustommulti_civicrm_is_multiple_contrib(
       CRM_Core_Smarty::singleton()->get_template_vars('customPre')
@@ -165,11 +164,12 @@ function contribcustommulti_civicrm_buildForm($formName, &$form) {
     if ($contribMultiCustomGroupId) {
       $profileBlock = ($formName == 'CRM_Contribute_Form_Contribution_Main') 
         ? 'custom_pre_profile-group' : 'crm-profile-view:first';
-      $form->assign('contrib_multi_add_more_div', $profileBlock);
-      $form->assign('contrib_multi_add_more_cgid', $contribMultiCustomGroupId);
-      $form->assign('profile_id', $form->_values['custom_pre_id']);
-      $customGroupName = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_CustomGroup', $contribMultiCustomGroupId, 'title');
-      $form->assign('contrib_multi_add_more_cg_title', $customGroupName);
+      $contribMultiInfo = array(
+        'add_more_div'  => $profileBlock,
+        'add_more_cgid' => $contribMultiCustomGroupId,
+        'profile_id'    => $form->_values['custom_pre_id'],
+      );
+      $form->assign('contribCustomMulti', $contribMultiInfo);
       $addTemplate = TRUE;
       _contribcustommulti_civicrm_assign_multiple_contrib_fields(
         CRM_Core_Smarty::singleton()->get_template_vars('customPre')
@@ -181,11 +181,12 @@ function contribcustommulti_civicrm_buildForm($formName, &$form) {
     if ($contribMultiCustomGroupId) {
       $profileBlock = ($formName == 'CRM_Contribute_Form_Contribution_Main') 
         ? 'custom_post_profile-group' : 'crm-profile-view:eq(1)';
-      $form->assign('contrib_multi_add_more_div', $profileBlock);
-      $form->assign('contrib_multi_add_more_cgid', $contribMultiCustomGroupId);
-      $form->assign('profile_id', $form->_values['custom_post_id']);
-      $customGroupName = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_CustomGroup', $contribMultiCustomGroupId, 'title');
-      $form->assign('contrib_multi_add_more_cg_title', $customGroupName);
+      $contribMultiInfo = array(
+        'add_more_div'  => $profileBlock,
+        'add_more_cgid' => $contribMultiCustomGroupId,
+        'profile_id'    => $form->_values['custom_post_id'],
+      );
+      $form->assign('contribCustomMulti', $contribMultiInfo);
       $addTemplate = TRUE;
       _contribcustommulti_civicrm_assign_multiple_contrib_fields(
         CRM_Core_Smarty::singleton()->get_template_vars('customPost')
@@ -193,7 +194,7 @@ function contribcustommulti_civicrm_buildForm($formName, &$form) {
     }
     if ($addTemplate) {
       CRM_Core_Region::instance('page-body')->add(array(
-        'template' => "CRM/LCD/Form/Contribution/Main.tpl"
+        'template' => "CRM/LCD/Form/Contribution/CustomMulti.tpl"
       ));
     }
   }
@@ -378,9 +379,11 @@ function contribcustommulti_civicrm_preProcess($formName, &$form) {
   }
   // Get ready with number of initial rows to display, and set defaults if using 
   // prev and next buttons.
-  if ($formName == 'CRM_Contribute_Form_Contribution_Main' || 
-    $formName == 'CRM_Contribute_Form_Contribution_ThankYou' ||
-    $formName == 'CRM_Contribute_Form_Contribution_Confirm') {
+  if (in_array($formName, array(
+    'CRM_Contribute_Form_Contribution_Main',
+    'CRM_Contribute_Form_Contribution_Confirm',
+    'CRM_Contribute_Form_Contribution_ThankYou'
+  ))) {
     $contribMultiParams = $form->get('contribMultiParams');
     $cgcount = 1;
     if (!empty($contribMultiParams)) {

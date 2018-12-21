@@ -1,8 +1,8 @@
-{if $contrib_multi_add_more_cgid}
-  <span id="custom_group_{$contrib_multi_add_more_cgid}">
-    <div id="custom_group_{$contrib_multi_add_more_cgid}_0"></div>
+{if $contribCustomMulti.add_more_cgid}
+  <span id="custom_group_{$contribCustomMulti.add_more_cgid}">
+    <div id="custom_group_{$contribCustomMulti.add_more_cgid}_0"></div>
     {section name=cgcount start=1 loop=$contribMultiCgcount}
-      <div id="custom_group_{$contrib_multi_add_more_cgid}_{$smarty.section.cgcount.index}" {if $smarty.section.cgcount.index eq 1}class="custom_group_{$contrib_multi_add_more_cgid}_0"{/if}></div>
+      <div id="custom_group_{$contribCustomMulti.add_more_cgid}_{$smarty.section.cgcount.index}" {if $smarty.section.cgcount.index eq 1}class="custom_group_{$contribCustomMulti.add_more_cgid}_0"{/if}></div>
     {/section}
     {*include custom data js file*}
     {include file="CRM/LCD/common/customData.tpl"}
@@ -10,11 +10,11 @@
 {literal}
 <script type="text/javascript">
   CRM.$(function($) {
-    var cgid = {/literal}'{$contrib_multi_add_more_cgid}'{literal};
+    var cgid = {/literal}'{$contribCustomMulti.add_more_cgid}'{literal};
     var formName = {/literal}'{$form.formName}'{literal};
-    var profileID  = {/literal}'{$profile_id}'{literal};
-    var profileBlk  = {/literal}'.{$contrib_multi_add_more_div}'{literal};
-    var customWithMoreBlk  = {/literal}'#custom_group_{$contrib_multi_add_more_cgid}'{literal};
+    var profileID  = {/literal}'{$contribCustomMulti.profile_id}'{literal};
+    var profileBlk  = {/literal}'.{$contribCustomMulti.add_more_div}'{literal};
+    var customWithMoreBlk  = {/literal}'#custom_group_{$contribCustomMulti.add_more_cgid}'{literal};
     $(customWithMoreBlk).appendTo(profileBlk);
 
     // load first set of contrib custom set row
