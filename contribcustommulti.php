@@ -305,15 +305,15 @@ function contribcustommulti_civicrm_postProcess($formName, &$form) {
   //handle contrib custom multi fields
   if ($formName == 'CRM_Contribute_Form_Contribution') {
     $fieldIds = _contribcustommulti_getContribCustomMulti();
-	$values = $form->getVar('_values');
-	$entityID = $values['id'];
-	$customFieldExtends = 'Contribution';
+    $entityID = $form->getVar('_id');
+    $customFieldExtends = 'Contribution';
     //extract custom data from $_REQUEST
     $customRows = array();
     foreach ($_REQUEST as $field => $value) {
-      if (strpos($field, 'custom_') !== FALSE) {
+      // $form->_params will have and store only first row. Here we try to store only additional rows.
+      if (strpos($field, 'custom_') !== FALSE && !array_key_exists($field, $form->_params)) {
         $parts = explode('_', $field);
-        Civi::log()->debug('contribcustommulti_civicrm_postProcess', array('$parts' => $parts));
+        // Civi::log()->debug('contribcustommulti_civicrm_postProcess', array('$parts' => $parts));
         if (in_array($parts[1], $fieldIds)) {
           $customRows[$parts[2]][$field] = $value;
         }
@@ -324,9 +324,9 @@ function contribcustommulti_civicrm_postProcess($formName, &$form) {
     //cycle through custom rows and save to the contact	
     foreach ($customRows as $key=>$row) {
       $customData = CRM_Core_BAO_CustomField::postProcess($row,
-			  $entityID,
-			  $customFieldExtends
-			);
+        $entityID,
+        $customFieldExtends
+      );
       $entityTable = 'Contribution';
       if (!empty($customData)) {
         CRM_Core_BAO_CustomValueTable::store($customData, $entityTable, $entityID);
@@ -339,15 +339,20 @@ function contribcustommulti_civicrm_postProcess($formName, &$form) {
   if ($formName == 'CRM_Contribute_Form_Contribution_Main') {
     $params = $form->controller->exportValues('Main');
     $contribFields = CRM_Core_BAO_CustomField::getFieldsForImport('Contribution', false, false, false, true, true);
+    $customGroupID = NULL;
     $contribMultiParams = array();
     foreach ($_POST as $key => $val) {
       if ($customFieldID = CRM_Core_BAO_CustomField::getKeyID($key)) {
         if (array_key_exists("custom_{$customFieldID}", $contribFields) && !array_key_exists($key, $params)) {
+          if (!$customGroupID) {
+            $customGroupID = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_CustomField', $customFieldID, 'custom_group_id');
+          }
           $contribMultiParams[$key] = $val;
         }
       }
     }
     $form->set('contribMultiParams', $contribMultiParams);
+    $form->set('contribMultiCustomGroupId', $customGroupID);
   }
 }
 
@@ -381,8 +386,6 @@ function contribcustommulti_civicrm_preProcess($formName, &$form) {
   // prev and next buttons.
   if (in_array($formName, array(
     'CRM_Contribute_Form_Contribution_Main',
-    'CRM_Contribute_Form_Contribution_Confirm',
-    'CRM_Contribute_Form_Contribution_ThankYou'
   ))) {
     $contribMultiParams = $form->get('contribMultiParams');
     $cgcount = 1;
@@ -401,6 +404,33 @@ function contribcustommulti_civicrm_preProcess($formName, &$form) {
       'defaults' => $contribMultiParams
     ));
   }
+
+  // For Confirm and Thankyou - display just display element values
+  if (in_array($formName, array(
+    'CRM_Contribute_Form_Contribution_Confirm',
+    'CRM_Contribute_Form_Contribution_ThankYou'
+  ))) {
+    $contribMultiParams = $form->get('contribMultiParams');
+    if (!empty($contribMultiParams)) {
+      $rows = array();
+      $rowsHeader = array();
+      $customGroupId = $form->get('contribMultiCustomGroupId');
+      if ($customGroupId) {
+        $groupTree = CRM_Core_BAO_CustomGroup::getTree('Contribution', array(), NULL, $customGroupId);
+        foreach($contribMultiParams as $key => $val) {
+          if (list($customFieldID, $index) = CRM_Core_BAO_CustomField::getKeyID($key, TRUE)) {
+            $display = CRM_Core_BAO_CustomField::displayValue($val, $key);
+            $rows[$index][$customFieldID] = $display;
+            $rowsHeader[$customFieldID]   = !empty($groupTree[$customGroupId]['fields'][$customFieldID]['label']) ? 
+              $groupTree[$customGroupId]['fields'][$customFieldID]['label'] : '';
+          }
+        }
+      }
+      $form->assign('contribMultiRows', $rows);
+      $form->assign('contribMultiRowsHeader', $rowsHeader);
+    }
+  }
+
   // on confirm set params in session, so injected contrib multi params gets picked up
   // and stored in DB
   if ($formName == 'CRM_Contribute_Form_Contribution_Confirm') {
