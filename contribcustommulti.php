@@ -297,10 +297,10 @@ function contribcustommulti_civicrm_alterTemplateFile($formName, &$form, $contex
 }
 
 function contribcustommulti_civicrm_postProcess($formName, &$form) {
-  Civi::log()->debug('postProcess', array(
+  /*Civi::log()->debug('postProcess', array(
     'formName' => $formName,
     '$_REQUEST' => $_REQUEST,
-  ));
+  ));*/
 
   //handle contrib custom multi fields
   if ($formName == 'CRM_Contribute_Form_Contribution') {
